@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -65,11 +65,16 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
 
         if (subscriptionType == Basic) {
             setSubscription(subscription, msg.sender, Basic, 1);
-        } else if (subscriptionType == Standard) {
+        }
+
+        if (subscriptionType == Standard) {
             setSubscription(subscription, msg.sender, Standard, 2);
-        } else if (subscriptionType == Premium) {
+        }
+        
+        if (subscriptionType == Premium) {
             setSubscription(subscription, msg.sender, Premium, 4);
         }
+
         mint(msg.sender, subscriptionType, 1, "");
         emit SubscriptionPurchased(
             msg.sender,
