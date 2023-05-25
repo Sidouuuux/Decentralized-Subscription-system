@@ -4,6 +4,7 @@ require("hardhat-deploy")
 require("solidity-coverage")
 require("hardhat-gas-reporter")
 require("hardhat-contract-sizer")
+require('hardhat-docgen');
 require("dotenv").config()
 
 /**
@@ -120,4 +121,9 @@ module.exports = {
   mocha: {
     timeout: 200000, // 200 seconds max for running tests
   },
+  docgen: {
+    path: './docs',
+    clear: true,
+    runOnCompile: true,
+  }
 }
