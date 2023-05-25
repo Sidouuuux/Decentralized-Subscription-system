@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
+/// @title Netflix Subscription Contract
+/// @dev This contract implements the functionality to subscribe to different types of (Netflix) subscriptions, manage subscription details, and transfer subscription tokens.
 contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
     struct Subscription {
         uint256 subId;
@@ -14,6 +16,7 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         address[] usersAllowed;
         uint256 expirationDate;
     }
+
     event SubscriptionPurchased(
         address indexed owner,
         uint256 indexed subId,
@@ -26,6 +29,7 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         uint256 indexed subId,
         address indexed user
     );
+
     event TokenTransferred(
         address indexed from,
         address indexed to,
@@ -39,16 +43,19 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
     uint256 public constant Standard = 2;
     uint256 public constant Premium = 3;
 
+    /// @dev Initializes the Netflix contract.
     constructor()
         ERC1155(
             "https://ipfs.io/ipfs/bafybeihjjkwdrxxjnuwevlqtqmh3iegcadc32sio4wmo7bv2gbf34qs34a/{id}.json"
         )
     {}
 
-    function subscribe(
-        uint256 subscriptionType,
-        uint256 subscriptionDuration
-    ) public {
+    /// @notice Allows a user to subscribe to a Netflix subscription.
+    /// @param subscriptionType The type of subscription to purchase.
+    /// @param subscriptionDuration The duration of the subscription in weeks.
+    function subscribe(uint256 subscriptionType, uint256 subscriptionDuration)
+        public
+    {
         require(
             subscriptionType >= Basic && subscriptionType <= Premium,
             "Invalid subscription type"
@@ -70,7 +77,7 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         if (subscriptionType == Standard) {
             setSubscription(subscription, msg.sender, Standard, 2);
         }
-        
+
         if (subscriptionType == Premium) {
             setSubscription(subscription, msg.sender, Premium, 4);
         }
@@ -84,6 +91,11 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         );
     }
 
+    /// @dev Sets the subscription details for a user.
+    /// @param subscription The storage reference to the subscription struct.
+    /// @param owner The owner of the subscription.
+    /// @param subId The subscription ID.
+    /// @param maxUsers The maximum number of users allowed for the subscription.
     function setSubscription(
         Subscription storage subscription,
         address owner,
@@ -96,6 +108,8 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         subscription.expirationDate = block.timestamp + (30 days);
     }
 
+    /// @notice Adds a user to the allowed list for a subscription.
+    /// @param user The address of the user to add.
     function addUserToAllowedList(address user) public {
         Subscription storage subscription = subscriptionsToUser[msg.sender];
         require(subscription.subId != 0, "Caller is not subscribed");
@@ -117,12 +131,22 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         emit UserAddedToAllowedList(msg.sender, subscription.subId, user);
     }
 
-    function getUsersAllowed(
-        address user
-    ) public view returns (address[] memory) {
+    /// @notice Gets the list of users allowed for a subscription.
+    /// @param user The user address.
+    /// @return The list of users allowed for the given user address.
+    function getUsersAllowed(address user)
+        public
+        view
+        returns (address[] memory)
+    {
         return subscriptionsToUser[user].usersAllowed;
     }
 
+    /// @dev Mints new subscription tokens.
+    /// @param account The account to receive the tokens.
+    /// @param id The token ID.
+    /// @param amount The amount of tokens to mint.
+    /// @param data Additional data to pass during the minting process.
     function mint(
         address account,
         uint256 id,
@@ -132,6 +156,13 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         _mint(account, id, amount, data);
     }
 
+    /// @dev Hook function that is called before any token transfer.
+    /// @param operator The address initiating the transfer.
+    /// @param from The address transferring the tokens.
+    /// @param to The address receiving the tokens.
+    /// @param ids The token IDs being transferred.
+    /// @param amounts The amounts of tokens being transferred.
+    /// @param data Additional data passed during the transfer.
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -149,14 +180,18 @@ contract Netflix is ERC1155, Ownable, Pausable, ERC1155Supply {
         }
     }
 
+    /// @notice Sets the base URI for token metadata.
+    /// @param newuri The new base URI.
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
 
+    /// @notice Pauses all token transfers.
     function pause() public onlyOwner {
         _pause();
     }
 
+    /// @notice Unpauses token transfers.
     function unpause() public onlyOwner {
         _unpause();
     }
